@@ -1,46 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Game Hub</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
-      padding: 0;
-      background: #1e1e2f;
+      font-family: Arial, sans-serif;
+      background: #121212;
       color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    }
+
+    header {
+      background: #1f1f1f;
+      padding: 20px;
       text-align: center;
     }
-    header {
-      background: #2c3e50;
-      width: 100%;
-      padding: 20px 0;
-    }
+
     header h1 {
       margin: 0;
-      font-size: 2em;
+      font-size: 2.5em;
     }
-    main {
-      margin-top: 40px;
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+      padding: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
-    .game-link {
-      display: inline-block;
-      margin: 20px;
-      padding: 15px 25px;
-      background: #27ae60;
-      color: white;
-      text-decoration: none;
+
+    .game-card {
+      background: #2a2a2a;
       border-radius: 10px;
-      font-size: 1.2em;
-      transition: background 0.3s;
+      overflow: hidden;
+      text-align: center;
+      transition: transform 0.2s;
     }
-    .game-link:hover {
-      background: #2ecc71;
+
+    .game-card:hover {
+      transform: scale(1.05);
+    }
+
+    .game-card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+    }
+
+    .game-card-title {
+      padding: 10px;
+      font-size: 1.1em;
+    }
+
+    a {
+      text-decoration: none;
+      color: white;
     }
   </style>
 </head>
@@ -48,9 +65,24 @@
   <header>
     <h1>🎮 My Game Hub</h1>
   </header>
-  <main>
-    <h2>Available Games</h2>
-    <a href="dodge/index.html" class="game-link">Play Dodge the Blocks</a>
-  </main>
+
+  <section class="games-grid">
+    <a href="dodge/index.html" class="game-card">
+      <img src="https://via.placeholder.com/200x120?text=Dodge" alt="Dodge">
+      <div class="game-card-title">Dodge Blocks</div>
+    </a>
+    <a href="#" class="game-card">
+      <img src="https://via.placeholder.com/200x120?text=Coming+Soon" alt="Coming Soon">
+      <div class="game-card-title">Coming Soon</div>
+    </a>
+    <a href="#" class="game-card">
+      <img src="https://via.placeholder.com/200x120?text=Coming+Soon" alt="Coming Soon">
+      <div class="game-card-title">Coming Soon</div>
+    </a>
+    <a href="#" class="game-card">
+      <img src="https://via.placeholder.com/200x120?text=Coming+Soon" alt="Coming Soon">
+      <div class="game-card-title">Coming Soon</div>
+    </a>
+  </section>
 </body>
 </html>
