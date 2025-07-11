@@ -21,7 +21,7 @@
     canvas {
       background: #222;
       border: 2px solid #2ecc71;
-      cursor: none; /* Hide cursor over canvas */
+      cursor: none;
     }
 
     #game-over {
@@ -40,10 +40,33 @@
       font-size: 16px;
       cursor: pointer;
     }
+
+    #score-container {
+      margin: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      align-items: center;
+      font-size: 18px;
+    }
+
+    #pause-btn {
+      padding: 5px 15px;
+      font-size: 16px;
+      background-color: #3498db;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
   <h1>Tetris</h1>
+  <div id="score-container">
+    <span>Score: <span id="score">0</span></span>
+    <button id="pause-btn">Pause</button>
+  </div>
   <canvas id="tetris" width="240" height="400"></canvas>
   <div id="game-over">Game Over</div>
   <button id="restart-btn">Play Again</button>
@@ -138,7 +161,6 @@
     }
 
     function playerReset() {
-      const pieces = 'ILJOTSZ';
       const index = (Math.random() * tetrominoes.length) | 0;
       player.matrix = tetrominoes[index];
       player.pos.y = 0;
@@ -189,6 +211,8 @@
         }
         const row = arena.splice(y, 1)[0].fill(0);
         arena.unshift(row);
+        player.score += 10;
+        updateScore();
       }
     }
 
@@ -216,8 +240,10 @@
     let dropInterval = 1000;
     let lastTime = 0;
     let animationId;
+    let paused = false;
 
     function update(time = 0) {
+      if (paused) return;
       const deltaTime = time - lastTime;
       lastTime = time;
       dropCounter += deltaTime;
@@ -226,6 +252,10 @@
       }
       draw();
       animationId = requestAnimationFrame(update);
+    }
+
+    function updateScore() {
+      document.getElementById('score').textContent = player.score;
     }
 
     document.addEventListener("keydown", event => {
@@ -244,11 +274,20 @@
       document.getElementById("game-over").style.display = "none";
       document.getElementById("restart-btn").style.display = "none";
       player.score = 0;
+      updateScore();
       playerReset();
       update();
     });
 
+    document.getElementById("pause-btn").addEventListener("click", () => {
+      paused = !paused;
+      document.getElementById("pause-btn").textContent = paused ? "Resume" : "Pause";
+      if (!paused) update();
+      else cancelAnimationFrame(animationId);
+    });
+
     playerReset();
+    updateScore();
     update();
   </script>
 </body>
