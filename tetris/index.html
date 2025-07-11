@@ -1,166 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Tetris Game</title>
+  <meta charset="UTF-8" />
+  <title>Tetris</title>
   <style>
     body {
       background: #1e1e2f;
       color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 0;
       font-family: sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
     }
 
     h1 {
       margin-top: 20px;
     }
 
-    canvas {
-      background: #222;
-      border: 2px solid #2ecc71;
-      cursor: none;
-    }
-
-    #game-over {
-      display: none;
-      font-size: 24px;
-      margin-top: 20px;
-      color: #ff4444;
-    }
-
-    #restart-btn {
-      display: none;
-      margin-top: 10px;
-      padding: 10px 20px;
-      background: #2ecc71;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #score-container {
+    #score {
       margin: 10px;
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      align-items: center;
       font-size: 18px;
     }
 
-    #pause-btn {
-      padding: 5px 15px;
-      font-size: 16px;
+    #pauseBtn {
+      padding: 6px 14px;
+      font-size: 14px;
       background-color: #3498db;
       border: none;
+      border-radius: 4px;
       color: white;
       cursor: pointer;
-      border-radius: 5px;
+    }
+
+    canvas {
+      background: black;
+      border: 2px solid lime;
+      display: block;
+      margin: 10px auto;
     }
 
     #controls {
       margin-top: 30px;
-      text-align: center;
     }
 
-    .control-row {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
+    .control-list {
+      list-style: none;
+      padding: 0;
       margin-top: 10px;
-      flex-wrap: wrap;
+      font-size: 16px;
     }
 
-    .control-key {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .control-key img {
-      width: 40px;
-      height: 40px;
-      margin-bottom: 5px;
+    .control-list li {
+      margin: 6px 0;
     }
   </style>
 </head>
 <body>
   <h1>Tetris</h1>
-  <div id="score-container">
-    <span>Score: <span id="score">0</span></span>
-    <button id="pause-btn">Pause</button>
-  </div>
-  <canvas id="tetris" width="240" height="400"></canvas>
-  <div id="game-over">Game Over</div>
-  <button id="restart-btn">Play Again</button>
+  <div id="score">Score: 0</div>
+  <button id="pauseBtn">Pause</button>
+  <canvas id="gameCanvas" width="200" height="400"></canvas>
 
-  <!-- Controls Tutorial Section -->
   <div id="controls">
-  <h2>How to Play</h2>
-  <ul class="control-list">
-    <li><strong>⬅ Left Arrow</strong> – Move Left</li>
-    <li><strong>➡ Right Arrow</strong> – Move Right</li>
-    <li><strong>⬇ Down Arrow</strong> – Soft Drop</li>
-    <li><strong>⬆ Up Arrow</strong> – Rotate</li>
-    <li><strong>P</strong> – Pause / Resume</li>
-  </ul>
-</div>
+    <h2>How to Play</h2>
+    <ul class="control-list">
+      <li><strong>⬅ Left Arrow</strong> – Move Left</li>
+      <li><strong>➡ Right Arrow</strong> – Move Right</li>
+      <li><strong>⬇ Down Arrow</strong> – Soft Drop</li>
+      <li><strong>⬆ Up Arrow</strong> – Rotate</li>
+      <li><strong>P</strong> – Pause / Resume</li>
+    </ul>
+  </div>
+
   <script>
-    // Prevent arrow keys and space from scrolling the page
-    window.addEventListener("keydown", function(e) {
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
-        e.preventDefault();
-      }
-    }, false);
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreDisplay = document.getElementById("score");
+    const pauseBtn = document.getElementById("pauseBtn");
 
-    const canvas = document.getElementById("tetris");
-    const context = canvas.getContext("2d");
-    context.scale(20, 20);
+    const ROWS = 20;
+    const COLS = 10;
+    const BLOCK_SIZE = 20;
 
-    const arena = createMatrix(12, 20);
-    const player = {
-      pos: {x: 0, y: 0},
-      matrix: null,
-      score: 0,
-    };
+    canvas.width = COLS * BLOCK_SIZE;
+    canvas.height = ROWS * BLOCK_SIZE;
 
     const colors = [
       null,
-      '#FF0D72',
-      '#0DC2FF',
-      '#0DFF72',
-      '#F538FF',
-      '#FF8E0D',
-      '#FFE138',
-      '#3877FF',
+      'cyan',
+      'blue',
+      'orange',
+      'yellow',
+      'green',
+      'purple',
+      'red'
     ];
 
     const tetrominoes = [
-      [[0,0,0],[1,1,1],[0,1,0]],
-      [[0,2,2],[2,2,0],[0,0,0]],
-      [[3,3,0],[0,3,3],[0,0,0]],
-      [[4,0,0],[4,4,4],[0,0,0]],
-      [[0,0,5],[5,5,5],[0,0,0]],
-      [[6,6],[6,6]],
-      [[0,7,0,0],[0,7,0,0],[0,7,0,0],[0,7,0,0]]
+      [],
+      [[1, 1, 1, 1]],
+      [[2, 0, 0], [2, 2, 2]],
+      [[0, 0, 3], [3, 3, 3]],
+      [[4, 4], [4, 4]],
+      [[0, 5, 5], [5, 5, 0]],
+      [[0, 6, 0], [6, 6, 6]],
+      [[7, 7, 0], [0, 7, 7]],
     ];
+
+    let arena = createMatrix(COLS, ROWS);
+    let player = {
+      matrix: null,
+      pos: { x: 0, y: 0 },
+      score: 0
+    };
+
+    let dropCounter = 0;
+    let dropInterval = 500;
+    let lastTime = 0;
+    let paused = false;
 
     function createMatrix(w, h) {
       const matrix = [];
-      while (h--) {
-        matrix.push(new Array(w).fill(0));
-      }
+      while (h--) matrix.push(new Array(w).fill(0));
       return matrix;
     }
 
     function collide(arena, player) {
-      const [m, o] = [player.matrix, player.pos];
+      const m = player.matrix;
+      const o = player.pos;
       for (let y = 0; y < m.length; ++y) {
         for (let x = 0; x < m[y].length; ++x) {
-          if (m[y][x] !== 0 &&
-              (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) {
+          if (m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0) {
             return true;
           }
         }
@@ -171,11 +141,30 @@
     function merge(arena, player) {
       player.matrix.forEach((row, y) => {
         row.forEach((value, x) => {
-          if (value !== 0) {
-            arena[y + player.pos.y][x + player.pos.x] = value;
-          }
+          if (value !== 0) arena[y + player.pos.y][x + player.pos.x] = value;
         });
       });
+    }
+
+    function rotate(matrix) {
+      return matrix[0].map((_, i) => matrix.map(row => row[i])).reverse();
+    }
+
+    function playerRotate() {
+      const pos = player.pos.x;
+      let offset = 1;
+      player.matrix = rotate(player.matrix);
+      while (collide(arena, player)) {
+        player.pos.x += offset;
+        offset = -(offset + (offset > 0 ? 1 : -1));
+        if (offset > player.matrix[0].length) {
+          player.matrix = rotate(player.matrix); // revert
+          player.matrix = rotate(player.matrix);
+          player.matrix = rotate(player.matrix);
+          player.pos.x = pos;
+          return;
+        }
+      }
     }
 
     function playerDrop() {
@@ -185,6 +174,7 @@
         merge(arena, player);
         playerReset();
         arenaSweep();
+        updateScore();
       }
       dropCounter = 0;
     }
@@ -197,58 +187,31 @@
     }
 
     function playerReset() {
-      const index = (Math.random() * tetrominoes.length) | 0;
+      const pieces = 'IJLOSTZ';
+      const type = pieces[Math.floor(Math.random() * pieces.length)];
+      const index = pieces.indexOf(type) + 1;
       player.matrix = tetrominoes[index];
       player.pos.y = 0;
-      player.pos.x = (arena[0].length / 2 | 0) -
-                     (player.matrix[0].length / 2 | 0);
+      player.pos.x = Math.floor(COLS / 2) - Math.floor(player.matrix[0].length / 2);
       if (collide(arena, player)) {
         arena.forEach(row => row.fill(0));
-        document.getElementById('game-over').style.display = 'block';
-        document.getElementById('restart-btn').style.display = 'block';
-        cancelAnimationFrame(animationId);
-      }
-    }
-
-    function playerRotate(dir) {
-      const pos = player.pos.x;
-      let offset = 1;
-      rotate(player.matrix, dir);
-      while (collide(arena, player)) {
-        player.pos.x += offset;
-        offset = -(offset + (offset > 0 ? 1 : -1));
-        if (offset > player.matrix[0].length) {
-          rotate(player.matrix, -dir);
-          player.pos.x = pos;
-          return;
-        }
-      }
-    }
-
-    function rotate(matrix, dir) {
-      for (let y = 0; y < matrix.length; ++y) {
-        for (let x = 0; x < y; ++x) {
-          [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
-        }
-      }
-      if (dir > 0) {
-        matrix.forEach(row => row.reverse());
-      } else {
-        matrix.reverse();
+        player.score = 0;
+        updateScore();
+        alert("Game Over!");
       }
     }
 
     function arenaSweep() {
+      let rowCount = 1;
       outer: for (let y = arena.length - 1; y >= 0; --y) {
         for (let x = 0; x < arena[y].length; ++x) {
-          if (arena[y][x] === 0) {
-            continue outer;
-          }
+          if (arena[y][x] === 0) continue outer;
         }
         const row = arena.splice(y, 1)[0].fill(0);
         arena.unshift(row);
-        player.score += 10;
-        updateScore();
+        y++;
+        player.score += rowCount * 10;
+        rowCount *= 2;
       }
     }
 
@@ -256,71 +219,53 @@
       matrix.forEach((row, y) => {
         row.forEach((value, x) => {
           if (value !== 0) {
-            context.fillStyle = colors[value];
-            context.fillRect(x + offset.x,
-                             y + offset.y,
-                             1, 1);
+            ctx.fillStyle = colors[value];
+            ctx.fillRect(
+              (x + offset.x) * BLOCK_SIZE,
+              (y + offset.y) * BLOCK_SIZE,
+              BLOCK_SIZE, BLOCK_SIZE
+            );
           }
         });
       });
     }
 
     function draw() {
-      context.fillStyle = "#000";
-      context.fillRect(0, 0, canvas.width, canvas.height);
-      drawMatrix(arena, {x: 0, y: 0});
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      drawMatrix(arena, { x: 0, y: 0 });
       drawMatrix(player.matrix, player.pos);
     }
 
-    let dropCounter = 0;
-    let dropInterval = 1000;
-    let lastTime = 0;
-    let animationId;
-    let paused = false;
-
     function update(time = 0) {
-      if (paused) return;
-      const deltaTime = time - lastTime;
-      lastTime = time;
-      dropCounter += deltaTime;
-      if (dropCounter > dropInterval) {
-        playerDrop();
+      if (!paused) {
+        const deltaTime = time - lastTime;
+        lastTime = time;
+        dropCounter += deltaTime;
+        if (dropCounter > dropInterval) playerDrop();
+        draw();
       }
-      draw();
-      animationId = requestAnimationFrame(update);
+      requestAnimationFrame(update);
     }
 
     function updateScore() {
-      document.getElementById('score').textContent = player.score;
+      scoreDisplay.innerText = "Score: " + player.score;
     }
 
     document.addEventListener("keydown", event => {
-      if (event.key === "ArrowLeft") {
-        playerMove(-1);
-      } else if (event.key === "ArrowRight") {
-        playerMove(1);
-      } else if (event.key === "ArrowDown") {
-        playerDrop();
-      } else if (event.key === "ArrowUp") {
-        playerRotate(1);
-      }
+      if (event.key === "ArrowLeft") playerMove(-1);
+      else if (event.key === "ArrowRight") playerMove(1);
+      else if (event.key === "ArrowDown") playerDrop();
+      else if (event.key === "ArrowUp") playerRotate();
+      else if (event.key === "p" || event.key === "P") togglePause();
     });
 
-    document.getElementById("restart-btn").addEventListener("click", () => {
-      document.getElementById("game-over").style.display = "none";
-      document.getElementById("restart-btn").style.display = "none";
-      player.score = 0;
-      updateScore();
-      playerReset();
-      update();
-    });
+    pauseBtn.addEventListener("click", togglePause);
 
-    document.getElementById("pause-btn").addEventListener("click", () => {
+    function togglePause() {
       paused = !paused;
-      document.getElementById("pause-btn").textContent = paused ? "Resume" : "Pause";
-      if (!paused) update();
-      else cancelAnimationFrame(animationId);
-    });
+      pauseBtn.textContent = paused ? "Resume" : "Pause";
+    }
 
     playerReset();
     updateScore();
